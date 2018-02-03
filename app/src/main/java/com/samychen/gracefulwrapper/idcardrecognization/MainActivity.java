@@ -1,10 +1,16 @@
 package com.samychen.gracefulwrapper.idcardrecognization;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private String language = "card";
 
     private Bitmap template;
+    private Bitmap fullImage;
     int index = 0;
     int[] ids = {R.drawable.id_card0, R.drawable.id_card1, R.drawable.id_card2};
 
@@ -127,15 +134,81 @@ public class MainActivity extends AppCompatActivity {
         idCard.setImageResource(ids[index]);
     }
 
+    public void search(View v){
+        Intent intent;
+        if (Build.VERSION.SDK_INT>Build.VERSION_CODES.KITKAT){
+            intent = new Intent();
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+        } else {
+            intent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        }
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent,"选择图片"),100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==100&&null!=data){
+            getResult(data.getData());
+        }
+    }
+
+    private void getResult(Uri data) {
+        String imagePath = null;
+        if (null!=data){
+            if ("file".equals(data.getScheme())){
+                imagePath = data.getPath();
+            } else if ("content".equals(data.getScheme())){
+                String[] filePathColumns = {MediaStore.Images.Media.DATA};
+                Cursor query = getContentResolver().query(data, filePathColumns, null, null, null);
+                if (null!=query){
+                    if (query.moveToFirst()){
+                        int columnIndex = query.getColumnIndex(filePathColumns[0]);
+                        imagePath = query.getString(columnIndex);
+                    }
+                    query.close();
+                }
+            }
+        }
+        if (!TextUtils.isEmpty(imagePath)){
+            tesstext.setText(null);
+            if (fullImage!=null){
+                fullImage.recycle();
+            }
+            fullImage = toBitmap(imagePath);
+            idCard.setImageBitmap(fullImage);
+        }
+    }
+
+    private Bitmap toBitmap(String imagePath) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        Bitmap bitmap = BitmapFactory.decodeFile(imagePath, options); //此时返回 bm 为空
+        options.inJustDecodeBounds = false; //缩放比。由于是固定比例缩放，只用高或者宽其中一个数据进行计算即可
+        int be = (int)(options.outHeight / (float)320);
+        if (be <= 0)
+            be = 1;
+        options.inSampleSize = be; //重新读入图片，注意此时已经把 options.inJustDecodeBounds 设回 false 了
+        bitmap=BitmapFactory.decodeFile(imagePath,options);
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+        System.out.println(w+" "+h); //after zoom
+        return bitmap;
+    }
 
     public void rt(View view) {
         tesstext.setText(null);
         Bitmap input = BitmapFactory.decodeResource(getResources(), ids[index]);
+        if (fullImage!=null){
+            input = fullImage;
+        }
         Bitmap result = Bitmap.createBitmap(240, 120, Bitmap.Config.ARGB_8888);
-        ImageUtils.findIdNumber(input, result, template);
+        Bitmap res = ImageUtils.findIdNumber(input, result, template,Bitmap.Config.ARGB_8888);
         input.recycle();
-        idCard.setImageBitmap(result);
-        baseApi.setImage(result);
+        idCard.setImageBitmap(res);
+        baseApi.setImage(res);
         tesstext.setText(baseApi.getUTF8Text());
         // Flowable.just(ids[index]).map(new Function<Integer, Bitmap>() {
         //     @Override

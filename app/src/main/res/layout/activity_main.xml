@@ -32,6 +32,12 @@
             android:layout_weight="1"
             android:onClick="next"
             android:text="下一张"/>
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="search"
+            android:text="从相册选择图片"/>
     </LinearLayout>
 
     <Button

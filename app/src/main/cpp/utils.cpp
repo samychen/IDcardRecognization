@@ -104,4 +104,15 @@ void mat2Bitmap(JNIEnv *env, Mat &src, jobject bitmap, jboolean needPremultiplyA
     }
 }
 
+jobject createBitmap(JNIEnv *env,Mat srcData,jobject config){
+    int imgWidth = srcData.cols;
+    int imgHeight = srcData.rows;
+    int numPix = imgWidth*imgHeight;
+    jclass bmpClass = env->FindClass("android/graphics/Bitmap");
+    jmethodID createBitmapFunction = env->GetStaticMethodID(bmpClass, "createBitmap", "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
+    jobject jBmpObj = env->CallStaticObjectMethod(bmpClass, createBitmapFunction, imgWidth,imgHeight,config);
+    mat2Bitmap(env, srcData, jBmpObj);
+    return jBmpObj;
+}
+
 

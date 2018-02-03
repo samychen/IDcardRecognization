@@ -12,5 +12,5 @@ public class ImageUtils {
         System.loadLibrary("Imgprocess");
     }
 
-    public static native void findIdNumber(Bitmap src, Bitmap out, Bitmap tpl);
+    public static native Bitmap findIdNumber(Bitmap src, Bitmap out, Bitmap tpl, Bitmap.Config argb8888);
 }
