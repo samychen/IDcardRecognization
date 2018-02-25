@@ -1,7 +1,7 @@
 # IDcardRecognization
 tesseract-ocr身份证识别
 
-博客地址：http://samychen.com/2018/02/21/%E8%BA%AB%E4%BB%BD%E8%AF%81%E8%AF%86%E5%88%AB/
+博客地址：[身份证识别](http://samychen.com/2018/02/21/身份证识别/)
 
 &emsp;&emsp;居民二代身份证除了基本信息不同，其他地方都是模板样式，那么我们可以先把敏感信息找到，也就是把身份证号码那一块区域先找到，我们可以把公民身份证那块区别作为匹配模板，找到整张图片的模板所在的区域，而OpenCV刚好提供了模板匹配的方法`matchTemplate( InputArray image, InputArray templ,OutputArray result, int method, InputArray mask = noArray() )`
 ![身份证样板.png](http://upload-images.jianshu.io/upload_images/4398977-5ac71527080936b6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
